@@ -3,6 +3,7 @@ const express=require('express');
 const http=require('http');
 const cors=require('cors');
 const path=require('path');
+const fs = require('fs');
 const crypto=require('crypto');
 const Database=require('better-sqlite3');
 const bcrypt=require('bcryptjs');
@@ -14,7 +15,14 @@ const {attachSocket}=require('./socket');
 const app=express();
 const server=http.createServer(app);
 const io=new Server(server,{cors:{origin:'*'}});
-const db=new Database(process.env.DB_PATH||path.join(__dirname,process.env.NODE_ENV==='production'?'data/campus.db':'campus.db'));
+const dbPath = process.env.DB_PATH || path.join(
+  __dirname,
+  process.env.NODE_ENV === 'production' ? 'data/campus.db' : 'campus.db'
+);
+
+fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+
+const db = new Database(dbPath);
 const PORT=process.env.PORT||3000;
 const SECRET=process.env.CAMPUS_SECRET||'CHANGE_THIS_CAMPUS_SECRET';
 if(process.env.NODE_ENV==='production'&&(!process.env.CAMPUS_SECRET||process.env.CAMPUS_SECRET.length<32))throw new Error('CAMPUS_SECRET must be at least 32 characters in production');
